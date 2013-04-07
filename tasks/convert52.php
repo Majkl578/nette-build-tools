@@ -23,26 +23,22 @@ $project->convert52 = function(SplFileInfo $file, $prefixed) {
 	$s = str_replace('__DIR__', 'dirname(__FILE__)', $s);
 	$s = str_replace('new static', 'new self', $s);
 	$s = str_replace('static::', 'self::', $s);
-	$s = str_replace('get_called_class()', '__CLASS__', $s);
 	$s = str_replace('E_USER_DEPRECATED', 'E_USER_WARNING', $s);
 	$s = preg_replace('#(?<=[[(= ])([^()\s]+(?:\([^()]+\))?) \?: #', '($tmp=$1) ? $tmp : ', $s); // expand ternary short cut
 	$s = preg_replace('#/\\*5\.2\*\s*(.*?)\s*\\*/#s', '$1', $s); // uncomment /*5.2* */
 	$s = preg_replace('#/\\*\\*/.*?/\\*\\*/\\s*#s', '', $s);  // remove /**/ ... /**/
+	$s = preg_replace('#^(\s*)(.+,.*)func_get_args\(\)#m', '$1\$_args=func_get_args(); $2\$_args', $s);  // func_get_args in parameter lists
 	$s = preg_replace("#'NETTE_PACKAGE', '.*'#", "'NETTE_PACKAGE', 'PHP 5.2" . ($prefixed ? ' prefixed' : '') . "'", $s); // loader.php
-	$s = str_replace('{=Nette\Framework::VERSION', '{=' . ($prefixed ? 'N' : '') . 'Framework::VERSION', $s); // Homepage\default.latte
-	$s = str_replace('@Nette\Database\Connection', $prefixed ? '@\NConnection' : '@\Connection', $s); // CD-collection\app\config.neon
-	$s = str_replace(': Nette\Database\Connection', $prefixed ? ': NConnection' : ': Connection', $s); // CD-collection\app\config.neon
-	$s = str_replace(', Nette\Database\Reflection\DiscoveredReflection', $prefixed ? ', NDiscoveredReflection' : ', DiscoveredReflection', $s); // CD-collection\app\config.neon
+	$s = str_replace('{=Nette\Framework::VERSION', '{=' . ($prefixed ? 'N' : '') . 'Framework::VERSION', $s); // sandbox, Homepage\default.latte
 	$s = str_replace('Model\Authenticator', 'Authenticator', $s); // sandbox\app\config.neon
 	$s = str_replace('App\RouterFactory', 'RouterFactory', $s); // sandbox\app\config.neon
-	$s = str_replace('$application->onStartup[] = function() {', '{', $s); // bootstrap.php
-	$s = str_replace('$application->onStartup[] = function() use ($application) {', '{', $s); // bootstrap.php
-	$s = str_replace('$configurator::', $prefixed ? 'NConfigurator::' : 'Configurator::', $s); // bootstrap.php in comment
-	$s = str_replace('$form::', 'Form::', $s); // Form examples
+	$s = str_replace('$configurator::', 'Nette\Config\Configurator::', $s); // 2.0.x bootstrap.php
+	$s = str_replace('$form::', 'Nette\Forms\Form::', $s); // Form examples
 	$s = str_replace('$node::', 'Nette\Latte\MacroNode::', $s); // Latte
 	$s = str_replace('Nette\Database\Drivers\\\\', $prefixed ? 'N' : '', $s); // Nette\Database\Connection.php
 	$s = str_replace('@Nette\Http\\', $prefixed ? '@\NHttp' : '@\Http', $s); // Nette\Config\Extensions\NetteExtension.php
-
+	$s = str_replace('debug_backtrace(FALSE)', 'PHP_VERSION_ID < 50205 ? debug_backtrace() : debug_backtrace(FALSE)', $s);
+	$s = preg_replace('#(\$\w+)::(\w+)\((?!\))#m', 'call_user_func(array($1, \'$2\'), ', $s); // $container::literal, $builder::literal
 
 	// remove namespaces and add prefix
 	$parser = new PhpParser($s);

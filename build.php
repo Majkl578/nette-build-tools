@@ -6,7 +6,7 @@
  * Call task 'main' to build a full release.
  * The release built will be stored in 'dist' directory.
  *
- * Can be used for version 2.0 or higher.
+ * Can be used for version 2.0.11 or higher.
  */
 
 require 'tools/Nette/nette.min.php';
@@ -50,7 +50,6 @@ $project->main = function($tag = 'master', $label = '1.0') use ($project) {
 	$project->gitClone('git://github.com/nette/sandbox.git', $tag, "$dir53/sandbox");
 	$project->gitClone('git://github.com/nette/tools.git', NULL, "$dir53/tools");
 	$project->gitClone('git://github.com/nette/tester.git', NULL, "$dir53/tools/Tester");
-	$project->gitClone('git://github.com/dg/ftp-deployment.git', NULL, "$dir53/tools/FTP-deployment");
 
 	if (PHP_OS === 'WINNT') {
 		$project->exec("attrib -H $dir53\.htaccess* /s /d");
@@ -86,14 +85,13 @@ $project->main = function($tag = 'master', $label = '1.0') use ($project) {
 	$project->delete("$dir53/sandbox/license.txt");
 	$project->delete("$dir53/examples/license.txt");
 	$project->delete("$dir53/tools/license.txt");
-	$project->delete("$dir53/tools/FTP-deployment/license.txt");
 	$project->delete("$dir53/tools/Tester/license.txt");
 	$project->delete("$dir53/composer.json");
 	$project->delete("$dir53/.travis.yml");
 	$project->copy(is_file("$dir53/client-side/netteForms.js") ? "$dir53/client-side/netteForms.js" : "$dir53/client-side/forms/netteForms.js", "$dir53/sandbox/www/js/netteForms.js");
-	$project->replace("$dir53/tests/run-tests.sh", array('#tools/nette/tester#' => 'tools/Tester'));
-	$project->replace("$dir53/tests/RunTests.bat", array('#tools\\\\nette\\\\tester#' => 'tools\Tester'));
-	$project->replace("$dir53/tests/Nette/bootstrap.php", array('#tools/autoload.php#' => 'tools/Tester/Tester/bootstrap.php', '#Tester\\\\Helpers::setup\(\);#' => "require __DIR__ . '/../../Nette/loader.php';"));
+	$project->replace("$dir53/tests/run-tests.sh", array('#vendor/nette/tester#' => 'tools/Tester'));
+	$project->replace("$dir53/tests/RunTests.bat", array('#vendor\\\\nette\\\\tester#' => 'tools\Tester'));
+	$project->replace("$dir53/tests/Nette/bootstrap.php", array('#vendor/autoload.php#' => 'tools/Tester/Tester/bootstrap.php', '#Tester\\\\Helpers::setup\(\);#' => "require __DIR__ . '/../../Nette/loader.php';"));
 
 	// build specific packages
 	$project->delete($dir52p);
