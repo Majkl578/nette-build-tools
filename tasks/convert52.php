@@ -147,9 +147,11 @@ $project->convert52 = function(SplFileInfo $file, $prefixed) {
 				$parser->fetch(')');
  			}
 			$body = '';
+			$count = 0;
  			do {
- 				$body .= $parser->fetchUntil('}') . '}';
-			} while ($parser->fetch() && !$parser->isNext(',', ';', ')'));
+ 				$body .= $parser->fetchUntil('{', '}') . ($last = $parser->fetch());
+ 				$count += $last === '{' ? 1 : -1;
+			} while ($count);
 
 			if (preg_match('#\Wfunction\s*\(#', $body)) {
 				throw new Exception("Nested closure in $file");
