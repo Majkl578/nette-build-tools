@@ -15,7 +15,7 @@ $project->minifyJs = function(SplFileInfo $file) use ($project) {
 	$s = $orig = file_get_contents($file);
 
 	// insert netteQ.js & bar.js into Nette\Debug\templates\bar.phtml
-	$s = preg_replace_callback('#<\?php require .*(/\w+\.js)\' \?>#', function($m) use ($file) {
+	$s = preg_replace_callback('#<\?php require .*(/\w+\.(js|css))\' \?>#', function($m) use ($file) {
 		return file_get_contents($file->getPath() . $m[1]);
 	}, $s);
 
