@@ -2,7 +2,7 @@
 <?php
 
 /**
- * ApiGen 2.6.1 - API documentation generator for PHP 5.3+
+ * ApiGen 2.8.0 - API documentation generator for PHP 5.3+
  *
  * Copyright (c) 2010-2011 David Grudl (http://davidgrudl.com)
  * Copyright (c) 2011-2012 Jaroslav Hanslík (https://github.com/kukulich)
@@ -17,13 +17,28 @@ namespace ApiGen;
 use Nette\Diagnostics\Debugger;
 use TokenReflection;
 
+// Safe locale and timezone
+setlocale(LC_ALL, 'C');
+if (!ini_get('date.timezone')) {
+	date_default_timezone_set('UTC');
+}
+
 if (false === strpos('@php_dir@', '@php_dir')) {
 	// PEAR package
 
 	@include '@php_dir@/Nette/loader.php';
 	@include '@php_dir@/Texy/texy.php';
+
+	spl_autoload_register(function($class) {
+		$class = trim($class, '\\');
+		require sprintf('%s.php', str_replace('\\', DIRECTORY_SEPARATOR, $class));
+	});
+} elseif (is_file($composerAutoload = __DIR__ . '/../../autoload.php')) {
+	// Composer package
+
+	@include $composerAutoload;
 } else {
-	// Downloaded package
+	// Standalone package
 
 	set_include_path(
 		__DIR__ . PATH_SEPARATOR .
@@ -34,13 +49,12 @@ if (false === strpos('@php_dir@', '@php_dir')) {
 
 	@include __DIR__ . '/libs/Nette/Nette/nette.min.php';
 	@include __DIR__ . '/libs/Texy/texy/texy.php';
-}
 
-// Autoload
-spl_autoload_register(function($class) {
-	$class = trim($class, '\\');
-	require sprintf('%s.php', str_replace('\\', DIRECTORY_SEPARATOR, $class));
-});
+	spl_autoload_register(function($class) {
+		$class = trim($class, '\\');
+		require sprintf('%s.php', str_replace('\\', DIRECTORY_SEPARATOR, $class));
+	});
+}
 
 try {
 
@@ -73,7 +87,8 @@ try {
 		echo "\nFor more information turn on the debug mode using the --debug option.\n";
 	};
 	Debugger::enable(Debugger::PRODUCTION, false);
-	Debugger::timer();
+
+	$start = new \DateTime();
 
 	$options = $_SERVER['argv'];
 	array_shift($options);
@@ -103,7 +118,7 @@ try {
 	if ($config->updateCheck && !$config->debug) {
 		ini_set('default_socket_timeout', 5);
 		$latestVersion = @file_get_contents('http://pear.apigen.org/rest/r/apigen/latest.txt');
-		if (false !== $latestVersion && version_compare(trim($latestVersion), Generator::VERSION) > 0) {
+		if (false !== $latestVersion && version_compare(trim($latestVersion), Generator::VERSION, '>')) {
 			$generator->output(sprintf("New version @header@%s@c available\n\n", $latestVersion));
 		}
 	}
@@ -192,7 +207,7 @@ try {
 	if ($config->wipeout && is_dir($config->destination)) {
 		$generator->output("Wiping out destination directory\n");
 		if (!$generator->wipeOutDestination()) {
-			throw new Exception('Cannot wipe out destination directory');
+			throw new \RuntimeException('Cannot wipe out destination directory');
 		}
 	}
 
@@ -206,7 +221,24 @@ try {
 	$generator->generate();
 
 	// End
-	$generator->output(sprintf("Done. Total time: @count@%d@c seconds, used: @count@%d@c MB RAM\n", Debugger::timer(), round(memory_get_peak_usage(true) / 1024 / 1024)));
+	$end = new \DateTime();
+	$interval = $end->diff($start);
+	$parts = array();
+	if ($interval->h > 0) {
+		$parts[] = sprintf('@count@%d@c hours', $interval->h);
+	}
+	if ($interval->i > 0) {
+		$parts[] = sprintf('@count@%d@c min', $interval->i);
+	}
+	if ($interval->s > 0) {
+		$parts[] = sprintf('@count@%d@c sec', $interval->s);
+	}
+	if (empty($parts)) {
+		$parts[] = sprintf('@count@%d@c sec', 1);
+	}
+
+	$duration = implode(' ', $parts);
+	$generator->output(sprintf("Done. Total time: %s, used: @count@%d@c MB RAM\n", $duration, round(memory_get_peak_usage(true) / 1024 / 1024)));
 
 } catch (ConfigException $e) {
 	// Configuration error
@@ -217,7 +249,7 @@ try {
 	// Everything else
 	if ($config->debug) {
 		do {
-			echo $generator->colorize(sprintf("\n@error@%s@c", $e->getMessage()));
+			echo $generator->colorize(sprintf("\n%s(%d): @error@%s@c", $e->getFile(), $e->getLine(), $e->getMessage()));
 			$trace = $e->getTraceAsString();
 		} while ($e = $e->getPrevious());
 

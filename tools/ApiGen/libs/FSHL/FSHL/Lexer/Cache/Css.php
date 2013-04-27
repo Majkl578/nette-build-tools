@@ -255,7 +255,7 @@ class Css
 			0 => NULL, 1 => 'css-at-rule', 2 => 'css-tag', 3 => 'css-id', 4 => 'css-class', 5 => 'css-pseudo', 6 => NULL, 7 => 'css-property', 8 => 'css-value', 9 => 'css-func', 10 => 'css-color', 11 => 'css-comment', 12 => 'xlang', 14 => 'html-tag'
 		);
 		$this->keywords = array(
-			
+
 		);
 
 	}

@@ -2,7 +2,7 @@
 /**
  * PHP Token Reflection
  *
- * Version 1.2.2
+ * Version 1.3.1
  *
  * LICENSE
  *
@@ -71,7 +71,7 @@ abstract class ReflectionElement extends ReflectionBase
 	 *
 	 * @var integer
 	 */
-	private $startPosition;
+	protected $startPosition;
 
 	/**
 	 * End position in the file token stream.
@@ -107,7 +107,7 @@ abstract class ReflectionElement extends ReflectionBase
 	/**
 	 * Parses the token substream.
 	 *
-	 * @param Stream\StreamBase $tokenStream Token substream
+	 * @param \TokenReflection\Stream\StreamBase $tokenStream Token substream
 	 * @param \TokenReflection\IReflection $parent Parent reflection object
 	 */
 	final protected function parseStream(Stream $tokenStream, IReflection $parent = null)
