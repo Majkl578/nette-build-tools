@@ -35,6 +35,7 @@ $project->convert52 = function(SplFileInfo $file, $prefixed) {
 	$s = str_replace('$configurator::', 'Nette\Config\Configurator::', $s); // 2.0.x bootstrap.php
 	$s = str_replace('$form::', 'Nette\Forms\Form::', $s); // Form examples
 	$s = str_replace('$node::', 'Nette\Latte\MacroNode::', $s); // Latte
+	$s = str_replace('$cache::', 'Nette\Caching\Cache::', $s); // Configurator
 	$s = str_replace('Nette\Database\Drivers\\\\', $prefixed ? 'N' : '', $s); // Nette\Database\Connection.php
 	$s = str_replace('@Nette\Http\\', $prefixed ? '@\NHttp' : '@\Http', $s); // Nette\Config\Extensions\NetteExtension.php
 	$s = str_replace('debug_backtrace(FALSE)', 'PHP_VERSION_ID < 50205 ? debug_backtrace() : debug_backtrace(FALSE)', $s);
